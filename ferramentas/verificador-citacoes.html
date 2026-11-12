@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verificador de Citações</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--mu:#64748b;--li:#cbd5e1;--az:#1d4ed8;--ok:#047857;--er:#b91c1c;--am:#b45309}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center}
+header b{flex:1}
+.chip{font-size:.75rem;background:#334155;border-radius:99px;padding:2px 8px}
+main{max-width:980px;margin:0 auto;padding:12px 16px 60px}
+.card{background:var(--card);border:1px solid var(--li);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:1.02rem;margin:0 0 8px}
+.mu{color:var(--mu);font-size:.88rem}
+textarea{width:100%;min-height:200px;font:inherit;font-size:.95rem;border:1px solid var(--li);border-radius:10px;padding:10px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--li);background:#fff;color:var(--tx);border-radius:10px;padding:9px 14px;min-height:42px;cursor:pointer}
+.btn.p{background:var(--az);border-color:var(--az);color:#fff}
+.linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.st{white-space:pre-wrap;font-size:.9rem;background:#f8fafc;border:1px solid var(--li);border-radius:10px;padding:8px 10px;margin-top:8px}
+.placar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.placar div{border-radius:12px;padding:10px;text-align:center;font-weight:700}
+.placar .v{background:#fee2e2;color:var(--er)} .placar .a{background:#fef3c7;color:var(--am)} .placar .g{background:#dcfce7;color:var(--ok)}
+.placar span{display:block;font-size:1.6rem}
+.item{border:1px solid var(--li);border-left:6px solid var(--am);border-radius:10px;padding:10px;margin:8px 0}
+.item.vermelho{border-left-color:var(--er)} .item.verde{border-left-color:var(--ok)}
+.item q{font-family:ui-monospace,Menlo,monospace;font-size:.9rem;background:#f8fafc;padding:1px 4px;border-radius:4px}
+.item ul{margin:6px 0;padding-left:20px}
+.item a{display:inline-block;margin:4px 8px 0 0}
+.texto{white-space:pre-wrap;font-family:Georgia,'Times New Roman',serif;line-height:1.6;background:#fff;border:1px solid var(--li);border-radius:10px;padding:12px}
+mark{border-radius:3px;padding:0 2px} mark.vermelho{background:#fecaca} mark.amarelo{background:#fde68a} mark.verde{background:#bbf7d0}
+pre.regra{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--li);border-radius:10px;padding:10px;font-size:.9rem}
+</style>
+</head>
+<body>
+<header><b>🔎 Verificador de Citações</b><span class="chip">v12/11</span></header>
+<main>
+<div class="card">
+  <p style="margin:0">Cole o texto que a IA escreveu (ou abra o arquivo). Eu acho tudo que parece <b>julgado, número de processo, súmula, tema, relator ou artigo de lei</b> e marco:</p>
+  <p style="margin:6px 0 0">🔴 <b>Sinal forte de invenção</b>: número impossível ou de exemplo, dígito do CNJ que não confere, nome incompleto.<br>🟡 <b>Conferir antes de usar</b>: pode existir, mas não veio com fonte.<br>🟢 <b>Tem fonte</b>: veio com link no próprio texto, ou é uma lei com o link oficial.</p>
+  <p class="mu" style="margin:6px 0 0">Eu não acesso os tribunais: não confirmo que um julgado existe. Cada item vem com os links para você conferir em um toque. Nada sai deste aparelho.</p>
+</div>
+
+<div class="card">
+  <h2>1) O texto</h2>
+  <textarea id="entrada" placeholder="Cole aqui a peça, o parecer ou a resposta da IA…"></textarea>
+  <div class="linha"><button class="btn p" id="btVerificar">🔎 Verificar</button><button class="btn" id="btAbrir">📂 Abrir arquivo (.txt, .docx, .pdf)</button><input type="file" id="arq" accept=".txt,.md,.docx,.pdf,text/*,application/pdf" hidden><button class="btn" id="btLimpar">Limpar</button></div>
+  <div class="st" id="st" hidden></div>
+</div>
+
+<div id="saida"></div>
+
+<div class="card">
+  <h2>📋 Regra para colar nas instruções da IA</h2>
+  <p class="mu" style="margin:0">Cole isto nas instruções de qualquer IA (Meu Chat → ⚙️ Instruções, ou no começo do pedido). Ajuda, mas não garante: por isso existe este verificador.</p>
+  <pre class="regra" id="regra">REGRA DE CITAÇÕES (obrigatória):
+1. Use SÓ o que está nos documentos que eu enviei e nas fontes que você consultar de verdade.
+2. NÃO cite julgado, súmula, tema ou número de processo sem a fonte (link ou documento). Se precisar de um precedente e não tiver fonte, escreva [PESQUISAR: assunto] no lugar.
+3. Ao citar lei, diga o artigo e a lei completa (ex.: art. 300 da Lei 13.105/2015 – CPC). Não coloque entre aspas um texto de lei ou de julgado que você não copiou da fonte.
+4. Nunca invente nome de relator, número de processo ou data de julgamento.
+5. No fim, liste as fontes usadas com o link de cada uma.</pre>
+  <div class="linha"><button class="btn" id="btRegra">📋 Copiar a regra</button></div>
+</div>
+</main>
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const enc = encodeURIComponent;
+let ULTIMO = null;
+
+// ---------- leis com link oficial (Planalto) ----------
+const LEIS = [
+  { re: /\b(CPC|C[óo]digo de Processo Civil|Lei\s*(?:n[º°o.]?\s*)?13\.?105)/i, nome: 'CPC (Lei 13.105/2015)', url: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm' },
+  { re: /\b(CC|C[óo]digo Civil|Lei\s*(?:n[º°o.]?\s*)?10\.?406)\b/i, nome: 'Código Civil (Lei 10.406/2002)', url: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm' },
+  { re: /\b(CF|CF\/88|Constitui[çc][ãa]o)/i, nome: 'Constituição Federal', url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm' },
+  { re: /\b(CDC|C[óo]digo de Defesa do Consumidor|Lei\s*(?:n[º°o.]?\s*)?8\.?078)/i, nome: 'CDC (Lei 8.078/1990)', url: 'https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm' },
+  { re: /\bLei\s*(?:n[º°o.]?\s*)?8\.?213/i, nome: 'Lei 8.213/1991 (Benefícios da Previdência)', url: 'https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm' },
+  { re: /\b(LOAS|Lei\s*(?:n[º°o.]?\s*)?8\.?742)/i, nome: 'Lei 8.742/1993 (LOAS)', url: 'https://www.planalto.gov.br/ccivil_03/leis/l8742compilado.htm' },
+  { re: /\b(Estatuto da (?:Advocacia|OAB)|EAOAB|Lei\s*(?:n[º°o.]?\s*)?8\.?906)/i, nome: 'Estatuto da Advocacia (Lei 8.906/1994)', url: 'https://www.planalto.gov.br/ccivil_03/leis/l8906.htm' },
+  { re: /\bLei\s*(?:n[º°o.]?\s*)?9\.?099/i, nome: 'Lei 9.099/1995 (Juizados)', url: 'https://www.planalto.gov.br/ccivil_03/leis/l9099.htm' },
+  { re: /\bLei\s*(?:n[º°o.]?\s*)?10\.?259/i, nome: 'Lei 10.259/2001 (Juizados Federais)', url: 'https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10259.htm' },
+  { re: /\b(CLT|Consolida[çc][ãa]o das Leis do Trabalho)/i, nome: 'CLT', url: 'https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm' },
+  { re: /\b(CPP|C[óo]digo de Processo Penal)/i, nome: 'CPP', url: 'https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689.htm' },
+  { re: /\bLei\s*(?:n[º°o.]?\s*)?14\.?905/i, nome: 'Lei 14.905/2024', url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14905.htm' },
+];
+// ---------- buscas para conferir ----------
+const busca = {
+  stj: (q) => 'https://scon.stj.jus.br/SCON/pesquisar.jsp?livre=' + enc(q),
+  stf: (q) => 'https://jurisprudencia.stf.jus.br/pages/search?base=acordaos&queryString=' + enc(q),
+  web: (q) => 'https://duckduckgo.com/?q=' + enc(q),
+  jus: (q) => 'https://www.jusbrasil.com.br/busca?q=' + enc(q),
+};
+const linksPara = (q, onde) => {
+  const l = [];
+  if (onde === 'stj' || onde === 'sup') l.push(['STJ', busca.stj(q)]);
+  if (onde === 'stf' || onde === 'sup') l.push(['STF', busca.stf(q)]);
+  l.push(['Jusbrasil', busca.jus(q)], ['Busca na internet', busca.web(q)]);
+  return l;
+};
+
+// ---------- sinais de número inventado ----------
+function numeroEstranho(n) {
+  const d = String(n).replace(/\D/g, ''); if (d.length < 3) return '';
+  if (/^(\d)\1+$/.test(d)) return 'todos os algarismos iguais (' + d + ')';
+  const seq = '01234567890123456789', inv = '98765432109876543210';
+  if (d.length >= 4 && (seq.includes(d) || inv.includes(d))) return 'algarismos em sequência (' + d + '), típico de número de exemplo';
+  if (/(?:0123|1234|2345|3456|4567|5678|6789)\d*$/.test(d) && d.length >= 6) return 'termina em sequência (…' + d.slice(-4) + '), típico de número de exemplo';
+  if (/^[1-9]0{4,}$/.test(d)) return 'número redondo (' + d + ')';
+  return '';
+}
+// dígito verificador do número único do CNJ (Resolução CNJ 65/2008)
+function cnjConfere(n, dd, a, j, tr, o) {
+  try { const v = BigInt(n + a + j + tr + o + '00'); return Number(98n - (v % 97n)) === Number(dd); } catch (e) { return false; }
+}
+// limites aproximados (até 2026): acima disso não existe
+const LIMITE_SUMULA = { 'STF vinculante': 70, STF: 736, STJ: 700, TNU: 100, TST: 470 };
+const LIMITE_TEMA = { STJ: 1400, STF: 1450, TNU: 400 };
+
+// ---------- procurar no texto ----------
+function verificar(texto) {
+  const achados = [];
+  const add = (ini, fim, cor, titulo, motivos, links) => {
+    if (achados.some((x) => ini < x.fim && fim > x.ini)) return; // não repete o mesmo pedaço
+    achados.push({ ini, fim, trecho: texto.slice(ini, fim), cor, titulo, motivos, links: links || [] });
+  };
+  const temLinkPerto = (i) => /https?:\/\/\S+/.test(texto.slice(Math.max(0, i - 40), i + 300));
+  let m;
+  // 1) número único do CNJ
+  const reCnj = /\b(\d{7})-(\d{2})\.(\d{4})\.(\d)\.(\d{2})\.(\d{4})\b/g;
+  while ((m = reCnj.exec(texto))) {
+    const ok = cnjConfere(m[1], m[2], m[3], m[4], m[5], m[6]);
+    add(m.index, m.index + m[0].length, ok ? (temLinkPerto(m.index) ? 'verde' : 'amarelo') : 'vermelho',
+      'Número de processo ' + m[0], ok ? ['O dígito verificador confere (o formato é de um número real). Falta confirmar que o processo existe e que diz o que o texto afirma.'] : ['O dígito verificador NÃO confere: este número não pode existir (regra da Resolução CNJ 65/2008).'], linksPara(m[0]));
+  }
+  // 2) números que parecem processo mas fora do padrão do CNJ (ex.: "Apelação 100.123.456.789")
+  const reProcFalso = /\b(Apela[çc][ãa]o(?: C[íi]vel)?|Agravo(?: de Instrumento)?|Recurso Inominado|Processo|Autos)\s*(?:n[º°o.]?\s*)?([\d][\d.\-\/]{5,})/gi;
+  while ((m = reProcFalso.exec(texto))) {
+    const num = m[2].replace(/[.\-\/]+$/, ''); if (/^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(num)) continue;
+    const est = numeroEstranho(num);
+    add(m.index, m.index + m[1].length + m[0].length - m[1].length, 'vermelho', m[1] + ' ' + num, ['Não está no formato do número único do CNJ (0000000-00.0000.0.00.0000), que todo processo tem desde 2010.'].concat(est ? [est] : []), linksPara(m[1] + ' ' + num));
+  }
+  // 3) recursos dos tribunais superiores: REsp, AREsp, RE, HC…
+  const reSup = /\b(REsp|AREsp|EREsp|AgRg|AgInt|EDcl|RE|ARE|AI|HC|RHC|MS|RMS|Rcl|ADI|ADC|ADPF|PUIL|Pet)\b\s*(?:no|na|nos|em)?\s*(?:(?:REsp|AREsp|RE|ARE)\s*)?(?:n[º°o.]?\s*)?(\d[\d.]{2,})(?:\s*\/\s*([A-Z]{2}))?/g;
+  while ((m = reSup.exec(texto))) {
+    const num = m[2].replace(/\.$/, ''), est = numeroEstranho(num), tipo = m[1];
+    const stf = /^(RE|ARE|AI|ADI|ADC|ADPF|Rcl)$/.test(tipo);
+    const mot = []; let cor = temLinkPerto(m.index) ? 'verde' : 'amarelo';
+    if (est) { mot.push(est); cor = 'vermelho'; }
+    if (!m[3] && !stf) mot.push('Sem a sigla do estado de origem (ex.: /MG), que costuma acompanhar o número.');
+    mot.push(cor === 'verde' ? 'Veio com link perto. Abra e confira se diz mesmo o que o texto afirma.' : 'Confira se existe e se diz o que o texto afirma.');
+    add(m.index, m.index + m[0].length, cor, tipo + ' ' + num + (m[3] ? '/' + m[3] : ''), mot, linksPara(tipo + ' ' + num, stf ? 'stf' : 'stj'));
+  }
+  // 4) súmulas
+  const reSum = /\bS[úu]mula(s)?\s+(Vinculante\s+)?(?:n[º°o.]?\s*)?(\d{1,4})(?:\s*(?:do|da|,)\s*(?:e\.?\s*)?(STF|STJ|TNU|TST|Supremo|Superior Tribunal de Justi[çc]a|Turma Nacional))?/gi;
+  while ((m = reSum.exec(texto))) {
+    let trib = (m[4] || '').toUpperCase(); if (/SUPREMO/.test(trib)) trib = 'STF'; if (/SUPERIOR/.test(trib)) trib = 'STJ'; if (/TURMA/.test(trib)) trib = 'TNU';
+    if (m[2]) trib = 'STF vinculante';
+    const n = +m[3], lim = LIMITE_SUMULA[trib], mot = [];
+    let cor = 'amarelo';
+    if (!trib) mot.push('Não diz de qual tribunal é a súmula.');
+    if (lim && n > lim) { cor = 'vermelho'; mot.push('Não existe súmula ' + (m[2] ? 'vinculante ' : '') + n + ' do ' + trib.replace(' vinculante', '') + ' (até 2026 não chegou nesse número).'); }
+    mot.push('Confira o texto da súmula na fonte oficial.');
+    add(m.index, m.index + m[0].length, cor, m[0].trim(), mot, linksPara(m[0].trim(), trib === 'STJ' ? 'stj' : trib.startsWith('STF') ? 'stf' : ''));
+  }
+  // 5) temas repetitivos / repercussão geral
+  const reTema = /\bTema\s+(?:n[º°o.]?\s*)?(\d{1,4})(?:\s*(?:do|da)\s*(STF|STJ|TNU))?/gi;
+  while ((m = reTema.exec(texto))) {
+    const t = (m[2] || '').toUpperCase(), lim = LIMITE_TEMA[t], mot = []; let cor = 'amarelo';
+    if (!t) mot.push('Não diz se é tema do STF, do STJ ou da TNU.');
+    if (lim && +m[1] > lim) { cor = 'vermelho'; mot.push('Número acima dos temas que existem no ' + t + ' até 2026.'); }
+    mot.push('Confira a tese fixada na página do tribunal.');
+    add(m.index, m.index + m[0].length, cor, m[0].trim(), mot, linksPara(m[0].trim(), t === 'STF' ? 'stf' : t === 'STJ' ? 'stj' : ''));
+  }
+  // 6) relator com nome incompleto
+  const reRel = /\bRel(?:\.|ator[a]?)\s*(?:p\/\s*ac[óo]rd[ãa]o\s*)?(Min\.|Ministr[oa]|Des\.|Desembargador[a]?|Juiz[a]?(?: Federal)?)\s+([A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ']+)(?:\s+(?:d[aeo]s?\s+)?([A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ']+))?/g;
+  while ((m = reRel.exec(texto))) {
+    if (!m[3]) add(m.index, m.index + m[0].length, 'vermelho', 'Relator: ' + m[1] + ' ' + m[2], ['Só um sobrenome ("' + m[2] + '"). Julgado de verdade traz o nome completo do relator; nome curto e comum é típico de invenção.'], linksPara(m[0]));
+  }
+  // 7) trecho entre aspas atribuído a tribunal, sem link
+  const reAspas = /["“]([^"”]{40,600})["”]\s*\(([^)]{0,160}?\b(STF|STJ|TST|TNU|TJ[A-Z]{2}|TRF\s*\d|TRT\s*\d+|Tribunal)[^)]*)\)/g;
+  while ((m = reAspas.exec(texto))) {
+    const ini = m.index;
+    if (!temLinkPerto(ini + m[0].length - 5)) add(ini, ini + Math.min(m[0].length, 120), 'amarelo', 'Trecho entre aspas atribuído a ' + m[3], ['Frase entre aspas como se fosse do julgado, sem link. Se não foi copiada da decisão, não pode ir entre aspas.'], linksPara(m[1].slice(0, 120)));
+  }
+  // 8) artigos de lei
+  const reArt = /\bart(?:igo)?s?\.?\s*(\d{1,4}(?:[º°o])?(?:-[A-Z])?)((?:\s*,\s*(?:§|par[áa]grafo|inc(?:iso)?\.?|al[íi]nea)[^,;.\n]{0,25})*)\s*(?:,\s*)?(?:d[aoe]s?\s+)?((?:Lei\s*(?:n[º°o.]?\s*)?[\d.]+(?:\/\d{2,4})?)|CPC|C[óo]digo (?:de Processo Civil|Civil|de Defesa do Consumidor|de Processo Penal)|CC|CF(?:\/88)?|Constitui[çc][ãa]o(?: Federal)?|CDC|CLT|CPP|LOAS|Estatuto da (?:Advocacia|OAB)|EAOAB)/gi;
+  while ((m = reArt.exec(texto))) {
+    const lei = LEIS.find((L) => L.re.test(m[3]));
+    const aspas = /["“]/.test(texto.slice(m.index + m[0].length, m.index + m[0].length + 6));
+    add(m.index, m.index + m[0].length, lei && !aspas ? 'verde' : 'amarelo', 'Art. ' + m[1] + ' ' + (lei ? lei.nome : m[3]),
+      (lei ? ['Lei conhecida: abra o link oficial e confira o artigo.'] : ['Lei que eu não tenho na lista: confira no Planalto.']).concat(aspas ? ['Vem com texto entre aspas logo depois: confira se é o texto exato da lei.'] : []),
+      (lei ? [['Planalto: ' + lei.nome, lei.url]] : []).concat([['Planalto (busca)', busca.web('planalto.gov.br ' + m[3])]]));
+  }
+  achados.sort((a, b) => a.ini - b.ini);
+  return achados;
+}
+
+// ---------- mostrar ----------
+function pintar(texto, achados) {
+  const n = (c) => achados.filter((a) => a.cor === c).length;
+  let marcado = '', pos = 0;
+  achados.forEach((a, k) => { marcado += esc(texto.slice(pos, a.ini)) + '<mark class="' + a.cor + '" title="' + esc(a.titulo) + '">' + esc(texto.slice(a.ini, a.fim)) + '<sup>' + (k + 1) + '</sup></mark>'; pos = a.fim; });
+  marcado += esc(texto.slice(pos));
+  const conclusao = !achados.length ? 'Não achei nenhuma citação de julgado, súmula, tema ou artigo de lei neste texto.'
+    : n('vermelho') ? '⚠ Este texto tem ' + n('vermelho') + ' sinal(is) forte(s) de citação inventada. Não use estas citações sem conferir: troque por uma fonte real ou tire.'
+    : n('amarelo') ? 'Nenhum sinal forte de invenção, mas ' + n('amarelo') + ' citação(ões) sem fonte. Confira cada uma antes de protocolar.'
+    : 'Todas as citações encontradas vieram com fonte. Ainda assim, abra os links e confira se dizem o que o texto afirma.';
+  $('saida').innerHTML =
+    '<div class="card"><h2>2) Resultado</h2><div class="placar"><div class="v"><span>' + n('vermelho') + '</span>🔴 sinal forte</div><div class="a"><span>' + n('amarelo') + '</span>🟡 conferir</div><div class="g"><span>' + n('verde') + '</span>🟢 com fonte</div></div>' +
+    '<p><b>' + esc(conclusao) + '</b></p>' +
+    '<div class="linha"><button class="btn" id="btDoc">📝 Baixar o relatório em Word</button><button class="btn" id="btCopiar">📋 Copiar o relatório</button></div></div>' +
+    (achados.length ? '<div class="card"><h2>3) Cada citação</h2>' + achados.map((a, k) => '<div class="item ' + a.cor + '"><b>' + (k + 1) + '. ' + (a.cor === 'vermelho' ? '🔴 ' : a.cor === 'verde' ? '🟢 ' : '🟡 ') + esc(a.titulo) + '</b><br><q>' + esc(a.trecho.length > 160 ? a.trecho.slice(0, 160) + '…' : a.trecho) + '</q><ul>' + a.motivos.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + a.links.map((l) => '<a href="' + esc(l[1]) + '" target="_blank" rel="noopener">🔗 ' + esc(l[0]) + '</a>').join('') + '</div>').join('') + '</div>' : '') +
+    '<div class="card"><h2>4) O texto marcado</h2><div class="texto" id="marcado">' + marcado + '</div></div>';
+  ULTIMO = { achados, conclusao, marcado };
+  $('btDoc').onclick = () => {
+    const h = '<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt}mark.vermelho{background:#fecaca}mark.amarelo{background:#fde68a}mark.verde{background:#bbf7d0}.t{white-space:pre-wrap;font-family:"Times New Roman";font-size:12pt}</style></head><body><h2>Verificação de citações</h2><p>Feita em ' + new Date().toLocaleString('pt-BR') + ' pelo Verificador de Citações (ferramenta de apoio: aponta sinais e dá os links; não confirma sozinha que um julgado existe).</p><p><b>' + esc(conclusao) + '</b></p><ol>' + achados.map((a) => '<li><b>[' + ({ vermelho: 'SINAL FORTE', amarelo: 'CONFERIR', verde: 'COM FONTE' }[a.cor]) + '] ' + esc(a.titulo) + '</b><br>' + a.motivos.map(esc).join('<br>') + '<br>' + a.links.map((l) => esc(l[0]) + ': ' + esc(l[1])).join('<br>') + '</li>').join('') + '</ol><h3>Texto marcado</h3><div class="t">' + marcado + '</div></body></html>';
+    const u = URL.createObjectURL(new Blob([h], { type: 'application/msword' })), el = document.createElement('a'); el.href = u; el.download = 'verificacao-citacoes.doc'; document.body.appendChild(el); el.click(); setTimeout(() => { URL.revokeObjectURL(u); el.remove(); }, 2000);
+  };
+  $('btCopiar').onclick = () => navigator.clipboard.writeText(conclusao + '\n\n' + achados.map((a, k) => (k + 1) + '. [' + ({ vermelho: 'SINAL FORTE', amarelo: 'CONFERIR', verde: 'COM FONTE' }[a.cor]) + '] ' + a.titulo + '\n   ' + a.motivos.join('\n   ')).join('\n')).then(() => aviso('📋 Relatório copiado.'), () => aviso('⚠ Não consegui copiar.'));
+}
+function aviso(t) { $('st').hidden = false; $('st').textContent = t; }
+
+// ---------- abrir arquivos ----------
+function carregarScript(urls) {
+  return new Promise((ok, erro) => { const tenta = (i) => { if (i >= urls.length) return erro(new Error('não consegui carregar o leitor (precisa de internet na primeira vez)')); const s = document.createElement('script'); s.src = urls[i]; s.onload = ok; s.onerror = () => tenta(i + 1); document.head.appendChild(s); }; tenta(0); });
+}
+async function lerDocx(arq) {
+  if (!window.JSZip) await carregarScript(['../lib/jszip.min.js', 'lib/jszip.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js']);
+  const z = await JSZip.loadAsync(await arq.arrayBuffer()); const x = await z.file('word/document.xml').async('string');
+  return x.replace(/<w:tab\/>/g, '\t').replace(/<\/w:p>/g, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+}
+async function lerPdf(arq) {
+  if (!window.pdfjsLib) await carregarScript(['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js']);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await arq.arrayBuffer()) }).promise; let out = '';
+  for (let p = 1; p <= pdf.numPages; p++) { const c = await (await pdf.getPage(p)).getTextContent(); out += c.items.map((i) => i.str + (i.hasEOL ? '\n' : ' ')).join('') + '\n'; }
+  return out;
+}
+$('btAbrir').onclick = () => $('arq').click();
+$('arq').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { aviso('⏳ Lendo ' + f.name + '…'); const t = /\.docx$/i.test(f.name) ? await lerDocx(f) : /\.pdf$/i.test(f.name) ? await lerPdf(f) : await f.text(); $('entrada').value = t; aviso('✅ ' + f.name + ' aberto.'); rodar(); }
+  catch (er) { aviso('⚠ ' + er.message); }
+};
+function rodar() { const t = $('entrada').value; if (!t.trim()) return aviso('Cole ou abra um texto primeiro.'); $('st').hidden = true; pintar(t, verificar(t)); $('saida').scrollIntoView({ behavior: 'smooth' }); }
+$('btVerificar').onclick = rodar;
+$('btLimpar').onclick = () => { $('entrada').value = ''; $('saida').innerHTML = ''; $('st').hidden = true; };
+$('btRegra').onclick = () => navigator.clipboard.writeText($('regra').textContent).then(() => aviso('📋 Regra copiada. Cole nas instruções da IA.'), () => aviso('⚠ Não consegui copiar.'));
+window.__verificador = { verificar, cnjConfere };
+</script>
+</body>
+</html>

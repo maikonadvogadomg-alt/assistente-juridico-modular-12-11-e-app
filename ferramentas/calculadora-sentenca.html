@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadora da Sentença</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--mu:#64748b;--li:#cbd5e1;--az:#1d4ed8;--ok:#047857;--er:#b91c1c;--am:#b45309}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center}
+header b{flex:1;font-size:1rem}
+.chip{font-size:.75rem;background:#334155;border-radius:99px;padding:2px 8px}
+main{max-width:980px;margin:0 auto;padding:12px 16px 60px}
+.card{background:var(--card);border:1px solid var(--li);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:1.02rem;margin:0 0 8px}
+.mu{color:var(--mu);font-size:.88rem}
+label{display:block;font-size:.85rem;color:var(--mu);margin:8px 0 3px}
+input,select,textarea{width:100%;font:inherit;color:var(--tx);background:#fff;border:1px solid var(--li);border-radius:10px;padding:9px 10px;min-height:42px}
+textarea{min-height:110px;font-size:.9rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+.btn{font:inherit;font-weight:600;border:1px solid var(--li);background:#fff;color:var(--tx);border-radius:10px;padding:9px 14px;min-height:42px;cursor:pointer}
+.btn.p{background:var(--az);border-color:var(--az);color:#fff}
+.btn.g{background:var(--ok);border-color:var(--ok);color:#fff}
+.linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.st{white-space:pre-wrap;font-size:.88rem;background:#f8fafc;border:1px solid var(--li);border-radius:10px;padding:8px 10px;margin-top:8px}
+.st.erro{border-color:var(--er);color:var(--er)} .st.ok{border-color:var(--ok);color:var(--ok)}
+.rad{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:.95rem;color:var(--tx)}
+.rad input{width:auto;min-height:auto;margin-top:4px}
+details{border:1px solid var(--li);border-radius:10px;padding:8px 10px;margin:8px 0}
+summary{cursor:pointer;font-weight:600}
+/* parecer */
+.papel{background:#fff;border:1px solid var(--li);border-radius:12px;padding:22px 26px;font-family:'Times New Roman',Georgia,serif;font-size:14px;line-height:1.55;color:#111}
+.papel h1{font-size:17px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.5px}
+.papel .sub{text-align:center;color:#444;font-size:13px;margin-bottom:14px}
+.papel h3{font-size:14.5px;border-bottom:2px solid #111;padding-bottom:3px;margin:18px 0 8px;text-transform:uppercase}
+.papel blockquote{margin:8px 0;padding:8px 12px;background:#fffbea;border-left:4px solid #b45309;font-style:italic}
+.papel table{border-collapse:collapse;width:100%;font-family:ui-monospace,Menlo,monospace;font-size:11px;margin:8px 0}
+.papel th,.papel td{border:1px solid #cbd5e1;padding:3px 5px;text-align:right}
+.papel th{background:#f1f5f9;text-align:center;font-size:10px}
+.papel td:first-child{text-align:center}
+.papel tr.cap{background:#dbeafe}
+.papel .res{width:100%;border-collapse:collapse;font-family:inherit;font-size:14px}
+.papel .res td{text-align:left;font-family:inherit;font-size:14px;padding:6px 8px}
+.papel .res td.v{text-align:right;font-weight:700;white-space:nowrap}
+.papel .res tr.pedido{background:#ecfdf5;font-weight:700}
+.papel .aviso{color:#92400e;background:#fffbeb;border:1px solid #fcd34d;padding:6px 10px;border-radius:8px;font-family:system-ui;font-size:12px}
+.papel .ass{text-align:center;margin-top:34px}
+.papel .ass div{border-top:1px solid #111;width:280px;margin:0 auto 4px}
+.tabw{overflow-x:auto}
+@media print{header,.nao-imprimir{display:none!important}body{background:#fff}main{padding:0;max-width:none}.papel{border:0;padding:0}.card{border:0;margin:0;padding:0}}
+</style>
+</head>
+<body>
+<header><b>🧮 Calculadora da Sentença</b><span class="chip">v12/11-C</span></header>
+<main>
+
+<div class="card nao-imprimir">
+  <p style="margin:0">Faz a conta <b>exatamente pelos critérios da sentença</b>, mês a mês, com os índices oficiais do Banco Central, e calcula os <b>honorários</b> por cada base possível. No fim gera o parecer com os trechos da sentença, a memória de cálculo e as fontes. Baixa em <b>planilha</b>, <b>Word</b> ou <b>PDF</b>.</p>
+  <p class="mu" style="margin:6px 0 0">Tudo fica guardado só neste aparelho. Os valores já vêm preenchidos com a sentença do processo 0008868-79.2018.8.13.0395. Confira cada campo.</p>
+</div>
+
+<div class="card nao-imprimir">
+  <h2>1) O processo</h2>
+  <div class="g2">
+    <div><label>Número do processo</label><input id="processo"></div>
+    <div><label>Vara / Comarca</label><input id="vara"></div>
+    <div><label>Exequente (quem cobra)</label><input id="exequente"></div>
+    <div><label>Executado (quem paga)</label><input id="executado"></div>
+    <div><label>Advogado (assinatura)</label><input id="advogado"></div>
+    <div><label>OAB</label><input id="oab"></div>
+  </div>
+</div>
+
+<div class="card nao-imprimir">
+  <h2>2) Os critérios da sentença</h2>
+  <div class="g3">
+    <div><label>Valor base (R$)</label><input id="valorBase" inputmode="decimal"></div>
+    <div><label>Data do valor base</label><input id="dataBase" type="date"></div>
+    <div><label>Juros e correção a partir de</label><input id="inicio" type="date"></div>
+    <div><label>Calcular até (mês)</label><input id="fim" type="month"></div>
+    <div><label>Juros remuneratórios: série do Banco Central</label>
+      <select id="serieJuros">
+        <option value="25464">25464 · Crédito pessoal não consignado (PF) · % ao mês</option>
+        <option value="outra">Outra série (digitar o código)…</option>
+      </select></div>
+    <div id="caixaOutra" hidden><label>Código da série SGS (tem que ser % ao mês)</label><input id="serieOutra" inputmode="numeric"></div>
+    <div><label>Capitalização dos juros remuneratórios</label>
+      <select id="capitalizacao"><option value="anual">Anual (a cada 12 meses)</option><option value="mensal">Mensal</option><option value="nenhuma">Nenhuma (juros simples)</option></select></div>
+    <div><label>Juros de mora (% ao mês, simples)</label><input id="mora" inputmode="decimal"></div>
+    <div><label>Juros de mora incidem sobre</label>
+      <select id="moraBase"><option value="saldo">O principal corrigido (com os juros já capitalizados)</option><option value="base">Só o valor base corrigido</option></select></div>
+  </div>
+  <label>Correção monetária (tabela da Corregedoria do TJMG)</label>
+  <select id="correcao">
+    <option value="fatores">A própria tabela do TJMG (abrir o PDF oficial) — o mais fiel à sentença</option>
+    <option value="indices">O índice da tabela do TJMG (INPC), buscado no Banco Central</option>
+    <option value="nenhuma">Sem correção</option>
+  </select>
+  <div id="caixaPos2024"><label>A partir de 09/2024</label>
+    <select id="pos2024"><option value="inpc">Continuar com o INPC (é o que a tabela da Corregedoria do TJMG usa)</option><option value="ipca">Trocar para o IPCA (regra geral da Lei 14.905/2024, quando a decisão não fixou índice)</option></select></div>
+  <div id="caixaFatores" hidden>
+    <div class="linha"><button class="btn p" id="btPdfTJMG">📂 Abrir o PDF da tabela do TJMG</button><input type="file" id="arqTJMG" accept=".pdf,.txt,.csv,application/pdf,text/*" hidden></div>
+    <div class="st" id="stTJMG">Nenhuma tabela aberta.</div>
+    <p class="mu">Baixe o PDF em tjmg.jus.br → Processos → Tabela de atualização monetária ("Fatores de atualização monetária"). A calculadora lê o arquivo do jeito que ele vem (ANO · MÊS · ÍNDICE). Depois do último mês da tabela, continua com o INPC do Banco Central e avisa no parecer.</p>
+    <details><summary>Ou colar o texto da tabela</summary><textarea id="fatoresTJMG" placeholder="2017 Setembro 1,527483&#10;2017 Outubro 1,5277882"></textarea></details>
+  </div>
+  <label>Trechos da sentença que mandam fazer isso (vão no parecer, entre aspas)</label>
+  <textarea id="trechos" style="min-height:150px"></textarea>
+</div>
+
+<div class="card nao-imprimir">
+  <h2>3) Os honorários</h2>
+  <div class="g3">
+    <div><label>Percentual (%)</label><input id="pctHon" inputmode="decimal"></div>
+    <div><label>Valor da causa (R$)</label><input id="valorCausa" inputmode="decimal"></div>
+    <div><label>Data do ajuizamento</label><input id="ajuizamento" type="date"></div>
+    <div><label>Honorários fixos da sentença (R$)</label><input id="honFixo" inputmode="decimal"></div>
+    <div><label>Data em que foram fixados</label><input id="honFixoData" type="date"></div>
+    <div><label>Trânsito em julgado (juros de mora desde)</label><input id="transito" type="date"></div>
+    <div><label>Juros de mora sobre os honorários (% ao mês)</label><input id="moraHon" inputmode="decimal"></div>
+  </div>
+  <label>Qual base é o seu pedido principal?</label>
+  <label class="rad"><input type="radio" name="base" value="causa"> <span><b>Valor atualizado da causa</b>: o valor da causa corrigido desde o ajuizamento (Súmula 14 do STJ)</span></label>
+  <label class="rad"><input type="radio" name="base" value="divida"> <span><b>Valor da dívida atualizado pelos critérios da sentença</b></span></label>
+  <label class="rad"><input type="radio" name="base" value="proveito"> <span><b>Proveito econômico</b>: a diferença entre a cobrança pelo contrato e o valor pela sentença</span></label>
+  <label class="rad"><input type="radio" name="base" value="fixo"> <span><b>Valor fixo da sentença</b>, corrigido</span></label>
+  <p class="mu">O parecer mostra <b>todas</b> as bases lado a lado e marca a que você escolher como pedido. Assim tudo fica às claras.</p>
+  <details><summary>Cobrança pelo contrato (para o proveito econômico)</summary>
+    <div class="g3">
+      <div><label>Juros do contrato (% ao mês)</label><input id="jurosContrato" inputmode="decimal"></div>
+      <div><label>Mora do contrato (% ao mês)</label><input id="moraContrato" inputmode="decimal"></div>
+      <div><label>Multa do contrato (%)</label><input id="multaContrato" inputmode="decimal"></div>
+    </div>
+    <p class="mu">É a conta "como o banco cobraria": juros + mora capitalizados todo mês, desde a mesma data de início.</p>
+  </details>
+  <label class="rad"><input type="checkbox" id="art523" style="width:auto;min-height:auto"> <span>Somar a multa de 10% e os honorários de 10% do <b>art. 523, § 1º, do CPC</b> (só se o devedor já foi intimado e não pagou em 15 dias)</span></label>
+  <label>Fundamentação dos honorários (vai no parecer; escreva do seu jeito)</label>
+  <textarea id="fundHon"></textarea>
+</div>
+
+<div class="card nao-imprimir">
+  <h2>4) Buscar os índices no Banco Central</h2>
+  <p class="mu" style="margin:0 0 6px">Busca a taxa de juros (série 25464), o INPC (série 188) e o IPCA (série 433) de cada mês. Os dados ficam guardados neste aparelho.</p>
+  <div class="linha"><button class="btn p" id="btBuscar">⬇ Buscar no Banco Central</button><button class="btn" id="btColar">✍ Colar os dados à mão</button></div>
+  <div class="st" id="stDados">Nenhum dado ainda.</div>
+  <div id="caixaColar" hidden>
+    <p class="mu">Se a busca não funcionar: no site do Banco Central (www3.bcb.gov.br/sgspub), consulte a série, copie a tabela e cole aqui. Cada linha precisa ter <b>a data</b> (dd/mm/aaaa ou mm/aaaa) e <b>o valor</b>.</p>
+    <label>Série</label><select id="colarQual"><option value="juros">Juros (25464 ou a outra série escolhida)</option><option value="188">INPC (188)</option><option value="433">IPCA (433)</option></select>
+    <textarea id="colarTexto" placeholder="01/09/2017;6,58&#10;01/10/2017;6,61"></textarea>
+    <div class="linha"><button class="btn" id="btColarOk">Guardar estes dados</button><button class="btn" id="btCsvBCB">📂 Abrir o arquivo baixado do Banco Central (.csv)</button><input type="file" id="arqCsv" accept=".csv,.txt,text/*" hidden></div>
+  </div>
+  <label class="rad"><input type="checkbox" id="repetirUltimo" style="width:auto;min-height:auto"> <span>Se faltar o índice dos últimos meses (ainda não publicado), <b>repetir o último valor publicado</b>. O parecer avisa.</span></label>
+</div>
+
+<div class="card nao-imprimir">
+  <div class="linha"><button class="btn g" id="btCalcular" style="font-size:1.05rem">🧮 Calcular</button></div>
+  <div class="st" id="stCalc">Preencha, busque os índices e toque em Calcular.</div>
+  <div class="linha" id="exportar" hidden>
+    <button class="btn" id="btXls">📊 Planilha (.xls)</button>
+    <button class="btn" id="btCsv">📄 CSV</button>
+    <button class="btn" id="btDoc">📝 Word (.doc)</button>
+    <button class="btn" id="btPdf">🖨 PDF (imprimir)</button>
+    <button class="btn" id="btCopiar">📋 Copiar o texto</button>
+  </div>
+  <details><summary>💾 Guardar ou trazer tudo (backup)</summary>
+    <div class="linha"><button class="btn" id="btBackup">⤓ Baixar backup (.json)</button><button class="btn" id="btRestaurar">⤒ Abrir backup</button><input type="file" id="arqBackup" accept=".json" hidden></div>
+  </details>
+</div>
+
+<div id="parecer"></div>
+</main>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const CHAVE = 'calc-sentenca:v1';
+const SENTENCA_TRECHOS = '"Assim, o valor inicial da dívida que declaro correto, a saber, R$ 3.512,10, deverá ser corrigido pela tabela da Corregedoria-Geral de Justiça do Estado de Minas Gerais, acrescido de juros remuneratórios segundo a taxa média de mercado para “Pessoa Física - Crédito pessoal não consignado”, com capitalização anual, e acrescido de juros de mora de 1% ao mês, contados a partir do dia 1º de setembro de 2017."\n\n"Como se trata de negócio envolvendo instituição financeira, entendo que os juros deve ser a taxa média do mercado para “Pessoa Física - Crédito pessoal não consignado” divulgada pelo Banco Central. A correção monetária deve ser feita com aplicação da tabela da Corregedoria-Geral de Justiça do Estado de Minas Gerais."\n\n"Por isso, a capitalização dos juros deverá ser feita anualmente."';
+const PADRAO = {
+  processo: '0008868-79.2018.8.13.0395', vara: '1ª Vara Cível da Comarca de Manhumirim/MG', exequente: '', executado: 'Cooperativa de Crédito de Livre Admissão da Zona da Mata de Minas Ltda. – SICOOB CREDILIVRE',
+  advogado: '', oab: '', valorBase: '3.512,10', dataBase: '2017-08-31', inicio: '2017-09-01', fim: '',
+  serieJuros: '25464', serieOutra: '', capitalizacao: 'anual', mora: '1', moraBase: 'saldo', correcao: 'fatores', pos2024: 'inpc', fatoresTJMG: '',
+  trechos: SENTENCA_TRECHOS, pctHon: '10', valorCausa: '6.814,41', ajuizamento: '', honFixo: '1.800,00', honFixoData: '2021-07-26', transito: '', moraHon: '1',
+  base: 'causa', jurosContrato: '9', moraContrato: '1', multaContrato: '2', art523: false, repetirUltimo: false,
+  fundHon: 'Os honorários advocatícios foram fixados pelo e. Tribunal de Justiça sobre o valor atualizado da causa (art. 85, § 2º, do CPC), por decisão transitada em julgado. Os honorários pertencem ao advogado e têm natureza alimentar (art. 85, § 14, do CPC), e o acordo feito pela parte sem a concordância do advogado não os prejudica (art. 24, § 4º, da Lei 8.906/94).\n\nPara total transparência, o exequente apresenta o cálculo por todas as bases possíveis, com a memória mês a mês e as fontes oficiais de cada índice, e requer, desde já, a conferência pela contadoria do juízo (art. 524, § 2º, do CPC).'
+};
+const CAMPOS = Object.keys(PADRAO).filter((k) => !['base', 'art523', 'repetirUltimo'].includes(k));
+let DADOS = { juros: {}, 188: {}, 433: {}, tjmg: {}, serieJuros: '25464' };
+let RES = null;
+
+// ---------- números e datas ----------
+const num = (s) => { s = String(s == null ? '' : s).trim().replace(/[^\d,.\-]/g, ''); if (!s) return 0; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); const n = Number(s); return Number.isFinite(n) ? n : 0; };
+const brl = (n) => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const pct = (n, c) => (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: c == null ? 4 : c, maximumFractionDigits: c == null ? 4 : c }) + '%';
+const ymDe = (iso) => iso ? iso.slice(0, 7) : '';
+const ymMais = (ym, k) => { const [a, m] = ym.split('-').map(Number); const d = new Date(a, m - 1 + k, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+const ymLista = (de, ate) => { const out = []; let y = de; while (y <= ate && out.length < 1200) { out.push(y); y = ymMais(y, 1); } return out; };
+const ymBR = (ym) => ym.slice(5) + '/' + ym.slice(0, 4);
+const dataBR = (iso) => iso ? iso.split('-').reverse().join('/') : '—';
+const mesesEntre = (de, ate) => { if (!de || !ate) return 0; const [a1, m1] = de.split('-').map(Number), [a2, m2] = ate.split('-').map(Number); return (a2 - a1) * 12 + (m2 - m1); };
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- guardar ----------
+function lerTela() {
+  const o = {}; CAMPOS.forEach((k) => { o[k] = $(k).value; });
+  o.base = (document.querySelector('input[name=base]:checked') || {}).value || 'causa';
+  o.art523 = $('art523').checked; o.repetirUltimo = $('repetirUltimo').checked; return o;
+}
+function porNaTela(o) {
+  CAMPOS.forEach((k) => { if (o[k] != null) $(k).value = o[k]; });
+  const r = document.querySelector('input[name=base][value="' + (o.base || 'causa') + '"]'); if (r) r.checked = true;
+  $('art523').checked = !!o.art523; $('repetirUltimo').checked = !!o.repetirUltimo; mostrarCaixas();
+}
+function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify({ campos: lerTela(), dados: DADOS })); } catch (e) {} }
+function carregar() {
+  let s = null; try { s = JSON.parse(localStorage.getItem(CHAVE) || 'null'); } catch (e) {}
+  const c = Object.assign({}, PADRAO, s && s.campos);
+  if (!c.fim) { const h = new Date(); c.fim = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0'); }
+  porNaTela(c); if (s && s.dados) DADOS = Object.assign(DADOS, s.dados); pintarDados();
+}
+function mostrarCaixas() {
+  $('caixaOutra').hidden = $('serieJuros').value !== 'outra';
+  $('caixaFatores').hidden = $('correcao').value !== 'fatores';
+  $('caixaPos2024').hidden = $('correcao').value !== 'indices';
+}
+const codigoJuros = () => $('serieJuros').value === 'outra' ? ($('serieOutra').value || '').trim() : $('serieJuros').value;
+
+// ---------- dados do Banco Central ----------
+function pintarDados(msg, tipo) {
+  const n = (o) => Object.keys(o || {}).length;
+  const fx = (o) => { const k = Object.keys(o || {}).sort(); return k.length ? ymBR(k[0]) + ' a ' + ymBR(k[k.length - 1]) : '—'; };
+  $('stDados').className = 'st' + (tipo ? ' ' + tipo : '');
+  $('stDados').textContent = (msg ? msg + '\n\n' : '') +
+    '• Juros (série ' + (DADOS.serieJuros || codigoJuros()) + '): ' + n(DADOS.juros) + ' meses (' + fx(DADOS.juros) + ')\n' +
+    '• INPC (188): ' + n(DADOS[188]) + ' meses (' + fx(DADOS[188]) + ')\n' +
+    '• IPCA (433): ' + n(DADOS[433]) + ' meses (' + fx(DADOS[433]) + ')';
+}
+function periodo() {
+  const c = lerTela();
+  const datas = [c.inicio, c.ajuizamento, c.honFixoData].filter(Boolean).map(ymDe).sort();
+  return { de: ymMais(datas[0] || ymDe(c.inicio), -1), ate: c.fim };
+}
+async function buscarSerie(cod, de, ate) {
+  const url = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.' + encodeURIComponent(cod) + '/dados?formato=json&dataInicial=01/' + de.slice(5) + '/' + de.slice(0, 4) + '&dataFinal=28/' + ate.slice(5) + '/' + ate.slice(0, 4);
+  const r = await fetch(url); if (!r.ok) throw new Error('série ' + cod + ': o Banco Central respondeu ' + r.status);
+  const j = await r.json(); if (!Array.isArray(j)) throw new Error('série ' + cod + ': resposta estranha');
+  const o = {}; j.forEach((x) => { const p = String(x.data).split('/'); if (p.length === 3) o[p[2] + '-' + p[1]] = Number(String(x.valor).replace(',', '.')); });
+  return o;
+}
+async function buscar() {
+  const cod = codigoJuros(); if (!cod) return pintarDados('⚠ Escolha a série de juros.', 'erro');
+  const { de, ate } = periodo(); $('btBuscar').disabled = true; pintarDados('⏳ Buscando no Banco Central…');
+  const erros = [];
+  for (const [chave, c] of [['juros', cod], ['188', '188'], ['433', '433']]) {
+    try { const o = await buscarSerie(c, de, ate); DADOS[chave] = Object.assign(chave === 'juros' && DADOS.serieJuros !== cod ? {} : DADOS[chave] || {}, o); if (chave === 'juros') DADOS.serieJuros = cod; }
+    catch (e) { erros.push(e.message === 'Failed to fetch' || /NetworkError|Load failed/.test(e.message) ? 'série ' + c + ': sem conexão com o Banco Central (internet, ou o navegador bloqueou)' : e.message); }
+  }
+  $('btBuscar').disabled = false; salvar();
+  if (erros.length) pintarDados('⚠ Não consegui tudo:\n' + erros.join('\n') + '\n\nSe continuar, use "✍ Colar os dados à mão".', 'erro');
+  else pintarDados('✅ Índices atualizados.', 'ok');
+}
+function colarDados() {
+  const qual = $('colarQual').value, t = $('colarTexto').value; const o = {};
+  t.split(/\r?\n/).forEach((l) => {
+    const d = l.match(/(\d{2})\/(\d{2})\/(\d{4})|(\d{2})\/(\d{4})/); if (!d) return;
+    const ym = d[1] ? d[3] + '-' + d[2] : d[5] + '-' + d[4];
+    const resto = l.slice(d.index + d[0].length); const v = resto.match(/-?\d+(?:[.,]\d+)?/); if (!v) return;
+    o[ym] = Number(v[0].replace(',', '.'));
+  });
+  const n = Object.keys(o).length; if (!n) return pintarDados('⚠ Não achei linhas com data e valor.', 'erro');
+  if (qual === 'juros') { if (DADOS.serieJuros !== codigoJuros()) DADOS.juros = {}; DADOS.serieJuros = codigoJuros(); }
+  DADOS[qual] = Object.assign(DADOS[qual] || {}, o); salvar(); pintarDados('✅ Guardei ' + n + ' meses.', 'ok');
+}
+const MESES = { janeiro: 1, fevereiro: 2, marco: 3, abril: 4, maio: 5, junho: 6, julho: 7, agosto: 8, setembro: 9, outubro: 10, novembro: 11, dezembro: 12 };
+const semAcento = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+// lê a tabela do TJMG de qualquer jeito que o texto venha:
+//  linha a linha ("2017 Setembro 1,527483"), com o ano só uma vez por grupo,
+//  em colunas separadas (todos os anos, depois todos os meses, depois os fatores),
+//  "09/2017 1,527483", "01/09/2017;1,527483" ou "2017  f1 f2 … f12"
+const RE_MES = '(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)';
+const MES_N = (m) => ({ jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, ago: 8, set: 9, out: 10, nov: 11, dez: 12 })[m.slice(0, 3)];
+function lerFatoresTJMG(raw) {
+  const txt = semAcento(String(raw || '').replace(/ /g, ' '));
+  const chave = (a, m) => a + '-' + String(m).padStart(2, '0');
+  const tentativas = [];
+  // A) em ordem, lembrando o último ano visto (serve para "ANO MÊS ÍNDICE" e para o ano uma vez só por grupo)
+  { const F = {}; const toks = txt.match(new RegExp('\\b(?:19|20)\\d{2}\\b(?![.,]\\d)|\\b' + RE_MES + '\\b|\\d+,\\d+|\\d+\\.\\d{3,}', 'g')) || [];
+    let ano = null, mes = null;
+    toks.forEach((t) => { if (/^(19|20)\d{2}$/.test(t)) { ano = t; return; } if (/^[a-z]/.test(t)) { mes = MES_N(t); return; } if (ano && mes) { F[chave(ano, mes)] = num(t); mes = null; } });
+    tentativas.push(F); }
+  // B) em colunas: por página (ou pelo texto todo), anos, meses e fatores em listas separadas, casados na ordem
+  { const F = {};
+    txt.split('\f').forEach((pg) => {
+      const anos = pg.match(/\b(?:19|20)\d{2}\b(?![.,]\d)/g) || [], meses = (pg.match(new RegExp('\\b' + RE_MES + '\\b', 'g')) || []).map(MES_N), vals = (pg.match(/\d+,\d+/g) || []).map(num);
+      if (!meses.length || meses.length !== vals.length) return;
+      let k = 0, ano = +anos[0];
+      meses.forEach((m, i) => { if (anos.length === meses.length) ano = +anos[i]; else if (i > 0 && m < meses[i - 1]) ano++; F[chave(ano, m)] = vals[i]; k++; });
+    });
+    tentativas.push(F); }
+  // C) "09/2017 1,527" ou "01/09/2017;1,527" · D) ano e os 12 fatores numa linha
+  { const F = {};
+    txt.split(/\r?\n/).forEach((l) => {
+      let d = l.match(/\b(?:\d{2}\/)?(\d{2})\/((?:19|20)\d{2})\b\D+(\d+[.,]\d+)/);
+      if (d) { F[chave(d[2], +d[1])] = num(d[3]); return; }
+      const ano = l.match(/\b(19|20)\d{2}\b/); if (!ano) return;
+      const ns = (l.slice(ano.index + 4).match(/\d+[.,]\d+/g) || []).map((x) => num(x)).filter((x) => x > 0);
+      if (ns.length >= 12) ns.slice(0, 12).forEach((v, k) => { F[chave(ano[0], k + 1)] = v; });
+    });
+    tentativas.push(F); }
+  return tentativas.sort((a, b) => Object.keys(b).length - Object.keys(a).length)[0];
+}
+function pintarTJMG(msg, tipo) {
+  const k = Object.keys(DADOS.tjmg || {}).sort();
+  $('stTJMG').className = 'st' + (tipo ? ' ' + tipo : (k.length ? ' ok' : ''));
+  $('stTJMG').textContent = (msg ? msg + '\n' : '') + (k.length ? '✅ Tabela do TJMG: ' + k.length + ' meses, de ' + ymBR(k[0]) + ' a ' + ymBR(k[k.length - 1]) + ' (último fator: ' + String(DADOS.tjmg[k[k.length - 1]]).replace('.', ',') + ').' : 'Nenhuma tabela aberta.');
+}
+// lê o texto de um PDF (o leitor pdf.js é baixado só quando precisa)
+async function textoDoPdf(arq) {
+  if (!window.pdfjsLib) await new Promise((ok, erro) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; s.onload = ok; s.onerror = () => erro(new Error('não consegui baixar o leitor de PDF (precisa de internet na primeira vez)')); document.head.appendChild(s); });
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await arq.arrayBuffer()) }).promise; let out = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const c = await (await pdf.getPage(p)).getTextContent();
+    const its = c.items.filter((it) => String(it.str).trim()).map((it) => ({ x: it.transform[4], y: it.transform[5], s: it.str })).sort((a, b) => b.y - a.y);
+    const linhas = []; its.forEach((it) => { const l = linhas[linhas.length - 1]; if (l && Math.abs(l.y - it.y) <= 3) l.its.push(it); else linhas.push({ y: it.y, its: [it] }); });
+    out += linhas.map((l) => l.its.sort((a, b) => a.x - b.x).map((x) => x.s).join(' ')).join('\n') + '\n\f';
+    if (p % 10 === 0) pintarTJMG('⏳ Lendo o PDF… página ' + p + ' de ' + pdf.numPages);
+  }
+  return out;
+}
+async function abrirTabelaTJMG(arq) {
+  try {
+    pintarTJMG('⏳ Lendo ' + arq.name + '…');
+    const t = /\.pdf$/i.test(arq.name) || arq.type === 'application/pdf' ? await textoDoPdf(arq) : await arq.text();
+    const F = lerFatoresTJMG(t); const n = Object.keys(F).length;
+    if (n < 12) throw new Error('não achei a tabela neste arquivo (li ' + n + ' meses). Confira se é o PDF "Fatores de atualização monetária" do TJMG.');
+    DADOS.tjmg = F; $('correcao').value = 'fatores'; mostrarCaixas(); salvar(); pintarTJMG('', 'ok');
+  } catch (e) { pintarTJMG('⚠ ' + e.message, 'erro'); }
+}
+
+// ---------- o cálculo ----------
+function calcular() {
+  const c = lerTela(); salvar();
+  const V0 = num(c.valorBase), mora = num(c.mora) / 100, ini = ymDe(c.inicio), fim = c.fim;
+  if (!V0 || !ini || !fim || fim < ini) throw new Error('Confira o valor base, a data de início e o "calcular até".');
+  const cod = codigoJuros(); if (DADOS.serieJuros !== cod) throw new Error('Os juros guardados são de outra série. Toque em "Buscar no Banco Central" de novo.');
+  const avisos = [];
+  // a taxa de um mês (com "repetir o último" se faltar no fim)
+  const ultimoAte = (o, ym) => { const ks = Object.keys(o || {}).filter((k) => k <= ym).sort(); return ks.length ? o[ks[ks.length - 1]] : null; };
+  const faltam = { juros: [], ind: [] };
+  const taxa = (o, ym, rot) => { if (o && o[ym] != null) return o[ym]; if (c.repetirUltimo) { const u = ultimoAte(o, ym); if (u != null) { avisos.push(rot + ' de ' + ymBR(ym) + ' ainda não publicado: usado o último valor (' + pct(u) + ').'); return u; } } (rot === 'Juros' ? faltam.juros : faltam.ind).push(ymBR(ym) + ' (' + rot + ')'); return 0; };
+  // correção do mês (em fração)
+  let F = null, fimTab = '';
+  if (c.correcao === 'fatores') {
+    F = Object.assign({}, DADOS.tjmg || {}, c.fatoresTJMG.trim() ? lerFatoresTJMG(c.fatoresTJMG) : {});
+    const ks = Object.keys(F).sort(); if (!ks.length) throw new Error('Abra o PDF da tabela do TJMG (📂) ou cole o texto dela.');
+    fimTab = ks[ks.length - 1];
+  }
+  const corr = (ym) => {
+    if (c.correcao === 'nenhuma') return 0;
+    if (c.correcao === 'fatores') {
+      const a = F[ymMais(ym, -1)], b = F[ym]; if (a && b) return a / b - 1;
+      if (ym > fimTab) { avisos.push('A tabela do TJMG aberta vai até ' + ymBR(fimTab) + '; depois disso foi usado o INPC do Banco Central (o mesmo índice da tabela).'); return taxa(DADOS[188], ym, 'INPC') / 100; }
+      faltam.ind.push(ymBR(ym) + ' (fator TJMG)'); return 0;
+    }
+    const usaIpca = ym >= '2024-09' && c.pos2024 === 'ipca';
+    return taxa(DADOS[usaIpca ? 433 : 188], ym, usaIpca ? 'IPCA' : 'INPC') / 100;
+  };
+  const indiceDe = (ym) => c.correcao === 'nenhuma' ? 'sem correção' : c.correcao === 'fatores' ? (ym > fimTab ? 'INPC (após a tabela)' : 'Tabela TJMG') : (ym >= '2024-09' && c.pos2024 === 'ipca' ? 'IPCA' : 'INPC');
+  // 1) a dívida pelos critérios da sentença
+  const meses = ymLista(ini, fim), linhas = [];
+  let P = V0, J = 0, M = 0, B = V0, S = V0;
+  const jc = num(c.jurosContrato) / 100, mc = num(c.moraContrato) / 100;
+  meses.forEach((ym, i) => {
+    const k = corr(ym); P *= 1 + k; J *= 1 + k; M *= 1 + k; B *= 1 + k;
+    const r = taxa(DADOS.juros, ym, 'Juros') / 100;
+    const jurosMes = P * r; J += jurosMes;
+    const moraMes = (c.moraBase === 'base' ? B : P) * mora; M += moraMes;
+    let cap = false;
+    if (c.capitalizacao === 'mensal' || (c.capitalizacao === 'anual' && (i + 1) % 12 === 0)) { P += J; J = 0; cap = true; }
+    S *= 1 + jc + mc; // como o contrato cobraria
+    linhas.push({ ym, indice: indiceDe(ym), k, r, jurosMes, moraMes, P, J, M, saldo: P + J + M, cap, S });
+  });
+  if (faltam.juros.length || faltam.ind.length) {
+    const l = faltam.juros.concat(faltam.ind); throw new Error('Faltam índices de ' + l.length + ' mês(es): ' + l.slice(0, 8).join(', ') + (l.length > 8 ? '…' : '') + '\n\nToque em "Buscar no Banco Central". Se faltar só o fim (ainda não publicado), marque "repetir o último valor publicado".');
+  }
+  const ult = linhas[linhas.length - 1];
+  const divida = ult.saldo, contrato = ult.S * (1 + num(c.multaContrato) / 100), proveito = Math.max(0, contrato - divida);
+  // 2) honorários: corrigir um valor de uma data até o fim
+  const corrigirDesde = (valor, iso) => { if (!iso) return valor; const de = ymDe(iso); let v = valor; ymLista(ymMais(de, 1), fim).forEach((ym) => { v *= 1 + corr(ym); }); return v; };
+  const causaCorr = corrigirDesde(num(c.valorCausa), c.ajuizamento);
+  const fixoCorr = corrigirDesde(num(c.honFixo), c.honFixoData);
+  const p = num(c.pctHon) / 100, mh = num(c.moraHon) / 100;
+  const mMora = c.transito ? Math.max(0, mesesEntre(ymDe(c.transito), fim)) : 0;
+  const bases = [
+    { id: 'causa', nome: 'Valor atualizado da causa (' + brl(num(c.valorCausa)) + ' corrigido desde ' + dataBR(c.ajuizamento) + ')', base: causaCorr, hon: causaCorr * p },
+    { id: 'divida', nome: 'Valor da dívida atualizado pelos critérios da sentença', base: divida, hon: divida * p },
+    { id: 'proveito', nome: 'Proveito econômico (cobrança pelo contrato − valor pela sentença)', base: proveito, hon: proveito * p },
+    { id: 'fixo', nome: 'Valor fixo da sentença (' + brl(num(c.honFixo)) + ' de ' + dataBR(c.honFixoData) + ', corrigido)', base: null, hon: fixoCorr },
+  ].map((b) => { const juros = b.hon * mh * mMora; let tot = b.hon + juros; const m523 = c.art523 ? tot * 0.2 : 0; return Object.assign(b, { juros, m523, total: tot + m523 }); });
+  if (faltam.juros.length || faltam.ind.length) { const l = faltam.juros.concat(faltam.ind); throw new Error('Faltam índices para corrigir os honorários: ' + l.slice(0, 8).join(', ') + '. Busque de novo no Banco Central (o período agora inclui o ajuizamento).'); }
+  if (!c.ajuizamento) avisos.push('Sem data do ajuizamento: o valor da causa foi usado sem correção. Preencha a data para corrigir (Súmula 14 do STJ).');
+  if (!c.transito) avisos.push('Sem data do trânsito em julgado: os juros de mora sobre os honorários não foram calculados.');
+  RES = { c, linhas, divida, contrato, proveito, bases, mMora, avisos: [...new Set(avisos)], cod, quando: new Date() };
+  return RES;
+}
+
+// ---------- o parecer ----------
+const FONTES = (cod) => [
+  ['Juros remuneratórios: Banco Central do Brasil, SGS, série ' + cod + (cod === '25464' ? ' — "Taxa média mensal de juros das operações de crédito com recursos livres - Pessoas físicas - Crédito pessoal não consignado" (% a.m.)' : ''), 'https://dadosabertos.bcb.gov.br/dataset/' + cod],
+  ['INPC: Banco Central do Brasil, SGS, série 188 (IBGE)', 'https://dadosabertos.bcb.gov.br/dataset/188-indice-nacional-de-precos-ao-consumidor'],
+  ['IPCA: Banco Central do Brasil, SGS, série 433 (IBGE)', 'https://dadosabertos.bcb.gov.br/dataset/433-indice-nacional-de-precos-ao-consumidor-amplo-ipca'],
+  ['Tabela de atualização monetária: Corregedoria-Geral de Justiça do TJMG', 'https://www.tjmg.jus.br/portal-tjmg/processos/tabela-de-atualizacao-monetaria/'],
+  ['Consulta pública das séries: SGS do Banco Central', 'https://www3.bcb.gov.br/sgspub/'],
+];
+function htmlParecer(R) {
+  const c = R.c, capTx = { anual: 'capitalização anual (a cada 12 meses)', mensal: 'capitalização mensal', nenhuma: 'sem capitalização' }[c.capitalizacao];
+  const corTx = c.correcao === 'indices' ? 'pelo índice que compõe a tabela da Corregedoria-Geral de Justiça do TJMG, o INPC' + (c.pos2024 === 'ipca' ? ', até 08/2024, e pelo IPCA a partir de 09/2024 (Lei 14.905/2024)' : ', em todo o período') : c.correcao === 'fatores' ? 'pela própria tabela de fatores da Corregedoria-Geral de Justiça do TJMG (correção do mês = fator do mês anterior ÷ fator do mês, porque a tabela manda multiplicar o valor histórico pelo fator da data de origem)' : 'sem correção monetária';
+  const ped = R.bases.find((b) => b.id === c.base) || R.bases[0];
+  let h = '<div class="papel" id="papel">';
+  h += '<h1>Memória de cálculo</h1><div class="sub">Processo nº ' + esc(c.processo) + (c.vara ? ' · ' + esc(c.vara) : '') + '<br>Cálculo até ' + ymBR(c.fim) + ' · gerado em ' + R.quando.toLocaleDateString('pt-BR') + '</div>';
+  if (R.avisos.length) h += '<p class="aviso">⚠ ' + R.avisos.map(esc).join('<br>⚠ ') + '</p>';
+  h += '<h3>I. O que a decisão transitada em julgado determina</h3>';
+  c.trechos.split(/\n\s*\n/).filter((t) => t.trim()).forEach((t) => { h += '<blockquote>' + esc(t.trim()) + '</blockquote>'; });
+  h += '<h3>II. Como o cálculo foi feito</h3><p>Valor base de <b>' + brl(num(c.valorBase)) + '</b> em ' + dataBR(c.dataBase) + ', atualizado mês a mês de ' + ymBR(ymDe(c.inicio)) + ' a ' + ymBR(c.fim) + ' (' + R.linhas.length + ' meses):</p><ol>' +
+    '<li><b>Correção monetária</b> ' + corTx + '. Ela incide sobre o principal e sobre os juros já acumulados, para manter o valor do dinheiro.</li>' +
+    '<li><b>Juros remuneratórios</b> pela taxa média de mercado de cada mês, da série ' + esc(R.cod) + ' do Banco Central, sobre o principal corrigido, com <b>' + capTx + '</b>. Os juros do ano são somados ao principal a cada 12 meses.</li>' +
+    '<li><b>Juros de mora</b> de ' + pct(num(c.mora), 2) + ' ao mês, simples, sobre ' + (c.moraBase === 'base' ? 'o valor base corrigido' : 'o principal corrigido') + '.</li></ol>' +
+    '<p>Cada mês usa <b>a taxa daquele mês</b>, e não uma única taxa repetida para o período inteiro.</p>';
+  h += '<h3>III. Resultado</h3><table class="res">' +
+    '<tr><td>Valor da dívida pelos critérios da decisão, em ' + ymBR(c.fim) + '</td><td class="v">' + brl(R.divida) + '</td></tr>' +
+    '<tr><td>· principal corrigido (com juros capitalizados)</td><td class="v">' + brl(R.linhas[R.linhas.length - 1].P) + '</td></tr>' +
+    '<tr><td>· juros remuneratórios ainda não capitalizados</td><td class="v">' + brl(R.linhas[R.linhas.length - 1].J) + '</td></tr>' +
+    '<tr><td>· juros de mora acumulados</td><td class="v">' + brl(R.linhas[R.linhas.length - 1].M) + '</td></tr>' +
+    '<tr><td>Para comparação: cobrança pelo contrato (' + pct(num(c.jurosContrato), 2) + ' + ' + pct(num(c.moraContrato), 2) + ' ao mês, capitalizados mensalmente, + multa de ' + pct(num(c.multaContrato), 2) + ')</td><td class="v">' + brl(R.contrato) + '</td></tr>' +
+    '<tr><td>Proveito econômico (diferença)</td><td class="v">' + brl(R.proveito) + '</td></tr></table>';
+  h += '<h3>IV. Honorários advocatícios</h3>' + c.fundHon.split(/\n\s*\n/).filter((t) => t.trim()).map((t) => '<p>' + esc(t.trim()) + '</p>').join('');
+  h += '<table class="res"><tr><td><b>Base</b></td><td class="v">Base de cálculo</td><td class="v">Honorários (' + pct(num(c.pctHon), 2) + ')</td><td class="v">Juros de mora' + (R.mMora ? ' (' + R.mMora + ' meses)' : '') + '</td>' + (c.art523 ? '<td class="v">Art. 523 (10% + 10%)</td>' : '') + '<td class="v">Total</td></tr>';
+  R.bases.forEach((b) => { h += '<tr' + (b.id === ped.id ? ' class="pedido"' : '') + '><td>' + (b.id === ped.id ? '➤ <b>PEDIDO:</b> ' : '') + esc(b.nome) + '</td><td class="v">' + (b.base == null ? '—' : brl(b.base)) + '</td><td class="v">' + brl(b.hon) + '</td><td class="v">' + brl(b.juros) + '</td>' + (c.art523 ? '<td class="v">' + brl(b.m523) + '</td>' : '') + '<td class="v">' + brl(b.total) + '</td></tr>'; });
+  h += '</table><p>Juros de mora sobre os honorários: ' + pct(num(c.moraHon), 2) + ' ao mês, simples, desde o trânsito em julgado (' + dataBR(c.transito) + '), conforme o art. 85, § 16, do CPC. ' + (c.art523 ? 'Multa de 10% e honorários de 10% na forma do art. 523, § 1º, do CPC.' : '') + '</p>';
+  h += '<p><b>Valor pedido: ' + brl(ped.total) + '</b>, em ' + ymBR(c.fim) + '.</p>';
+  h += '<p>Requer-se, desde já, se Vossa Excelência entender necessário, a remessa à contadoria do juízo para conferência (art. 524, § 2º, do CPC). Todos os índices usados são públicos e podem ser conferidos nas fontes abaixo.</p>';
+  h += '<h3>V. Fontes oficiais</h3><ul>' + FONTES(R.cod).map((f) => '<li>' + esc(f[0]) + ' — <a href="' + f[1] + '">' + f[1] + '</a></li>').join('') + '</ul>';
+  h += '<h3>VI. Memória mês a mês</h3><div class="tabw"><table><thead><tr><th>Mês</th><th>Índice</th><th>Correção</th><th>Taxa BCB a.m.</th><th>Juros do mês</th><th>Mora do mês</th><th>Principal</th><th>Juros acum.</th><th>Mora acum.</th><th>Saldo</th></tr></thead><tbody>';
+  R.linhas.forEach((l) => { h += '<tr' + (l.cap ? ' class="cap"' : '') + '><td>' + ymBR(l.ym) + (l.cap ? ' ●' : '') + '</td><td>' + l.indice + '</td><td>' + pct(l.k * 100) + '</td><td>' + pct(l.r * 100, 2) + '</td><td>' + brl(l.jurosMes) + '</td><td>' + brl(l.moraMes) + '</td><td>' + brl(l.P) + '</td><td>' + brl(l.J) + '</td><td>' + brl(l.M) + '</td><td>' + brl(l.saldo) + '</td></tr>'; });
+  h += '</tbody></table></div><p style="font-size:12px">● = mês em que os juros remuneratórios foram somados ao principal (capitalização).</p>';
+  if (c.advogado || c.oab) h += '<div class="ass"><div></div><b>' + esc(c.advogado) + '</b><br>' + esc(c.oab) + '</div>';
+  return h + '</div>';
+}
+
+// ---------- baixar ----------
+function baixar(nome, conteudo, tipo) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: tipo })); a.download = nome;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+const nomeArq = (ext) => 'calculo-' + (RES.c.processo || 'processo').replace(/[^\w]+/g, '-') + '-' + RES.c.fim + '.' + ext;
+const ESTILO_DOC = '<style>body{font-family:"Times New Roman";font-size:12pt}h1{font-size:15pt;text-align:center}h3{font-size:12.5pt;border-bottom:1px solid #000}blockquote{background:#fffbea;border-left:3pt solid #b45309;padding:6pt;font-style:italic}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:2pt 4pt;font-size:8.5pt}.res td{font-size:11pt}tr.pedido{background:#ecfdf5;font-weight:bold}tr.cap{background:#dbeafe}.sub{text-align:center}.ass{text-align:center;margin-top:30pt}</style>';
+function csv() {
+  const f = (n) => (Number(n) || 0).toFixed(6).replace('.', ',');
+  const rows = [['Mês', 'Índice', 'Correção (%)', 'Taxa BCB (% a.m.)', 'Juros do mês', 'Mora do mês', 'Principal', 'Juros acumulados', 'Mora acumulada', 'Saldo', 'Capitalizou']];
+  RES.linhas.forEach((l) => rows.push([ymBR(l.ym), l.indice, f(l.k * 100), f(l.r * 100), f(l.jurosMes), f(l.moraMes), f(l.P), f(l.J), f(l.M), f(l.saldo), l.cap ? 'sim' : '']));
+  return '﻿' + rows.map((r) => r.join(';')).join('\r\n');
+}
+
+// ---------- ligar a tela ----------
+document.addEventListener('input', (e) => { if (e.target.closest('main')) salvar(); });
+document.addEventListener('change', (e) => { mostrarCaixas(); salvar(); });
+$('btBuscar').onclick = buscar;
+$('btColar').onclick = () => { $('caixaColar').hidden = !$('caixaColar').hidden; };
+$('btColarOk').onclick = colarDados;
+$('btPdfTJMG').onclick = () => $('arqTJMG').click();
+$('fatoresTJMG').addEventListener('input', () => { const n = Object.keys(lerFatoresTJMG($('fatoresTJMG').value)).length; pintarTJMG(n ? '✍ No texto colado reconheci ' + n + ' meses.' : '✍ Ainda não reconheci nenhum mês no texto colado.'); });
+$('arqTJMG').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) abrirTabelaTJMG(f); };
+$('btCsvBCB').onclick = () => $('arqCsv').click();
+$('arqCsv').onchange = async (e) => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; $('colarTexto').value = await f.text(); colarDados(); };
+$('btCalcular').onclick = () => {
+  try { const R = calcular(); $('parecer').innerHTML = htmlParecer(R); $('exportar').hidden = false;
+    const ped = R.bases.find((b) => b.id === R.c.base) || R.bases[0];
+    $('stCalc').className = 'st ok'; $('stCalc').textContent = '✅ Pronto (' + R.linhas.length + ' meses). Dívida pela sentença: ' + brl(R.divida) + '. Honorários pedidos: ' + brl(ped.total) + '.\nO parecer está logo abaixo.' + (R.avisos.length ? '\n⚠ Tem ' + R.avisos.length + ' aviso(s) no parecer.' : '');
+    $('parecer').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { $('stCalc').className = 'st erro'; $('stCalc').textContent = '⚠ ' + e.message; }
+};
+$('btCsv').onclick = () => baixar(nomeArq('csv'), csv(), 'text/csv;charset=utf-8');
+$('btXls').onclick = () => baixar(nomeArq('xls'), '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8">' + ESTILO_DOC + '</head><body>' + $('papel').innerHTML + '</body></html>', 'application/vnd.ms-excel');
+$('btDoc').onclick = () => baixar(nomeArq('doc'), '<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">' + ESTILO_DOC + '</head><body>' + $('papel').innerHTML + '</body></html>', 'application/msword');
+$('btPdf').onclick = () => window.print();
+$('btCopiar').onclick = async () => { try { await navigator.clipboard.writeText($('papel').innerText); $('stCalc').textContent = '📋 Texto copiado.'; } catch (e) { $('stCalc').textContent = '⚠ Não consegui copiar.'; } };
+$('btBackup').onclick = () => baixar('calculadora-sentenca-backup.json', JSON.stringify({ campos: lerTela(), dados: DADOS }, null, 1), 'application/json');
+$('btRestaurar').onclick = () => $('arqBackup').click();
+$('arqBackup').onchange = async (e) => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { const o = JSON.parse(await f.text()); if (o.dados) DADOS = Object.assign(DADOS, o.dados); porNaTela(Object.assign({}, PADRAO, o.campos)); salvar(); pintarDados('✅ Backup aberto.', 'ok'); } catch (er) { pintarDados('⚠ Esse arquivo não é um backup desta calculadora.', 'erro'); } };
+carregar(); pintarTJMG();
+</script>
+</body>
+</html>
